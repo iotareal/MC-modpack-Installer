@@ -1,0 +1,98 @@
+[
+  {
+    "slug": "appleskin",
+    "loader": "fabric",
+    "type":"mod"
+  },
+
+  {
+    "slug": "ambientsounds",
+    "loader": "fabric",
+    "type":"mod"
+  },
+  {
+    "slug": "collective",
+    "loader": "fabric",
+    "type":"mod"
+  },
+  {
+    "slug": "creativecore",
+    "loader": "fabric",
+    "type":"mod"
+  },
+  {
+    "slug": "fabric-api",
+    "loader": "fabric",
+    "type":"mod"
+  },
+  {
+    "slug": "fabric-language-kotlin",
+    "loader": "fabric",
+    "type":"mod"
+  },
+  {
+    "slug": "iris",
+    "loader": "fabric",
+    "type":"mod"
+  },
+  {
+    "slug": "litematica",
+    "loader": "fabric",
+    "type":"mod"
+  },
+  {
+    "slug": "logical-zoom",
+    "loader": "fabric",
+    "type":"mod"
+  },
+  {
+    "slug": "malilib",
+    "loader": "fabric",
+    "type":"mod"
+  },
+  {
+    "slug": "minihud",
+    "loader": "fabric",
+    "type":"mod"
+  },
+  {
+    "slug": "modmenu",
+    "loader": "fabric",
+    "type":"mod"
+  },
+  {
+    "slug": "reeses-sodium-options",
+    "loader": "fabric",
+    "type":"mod"
+  },
+  {
+    "slug": "sodium-extra",
+    "loader": "fabric",
+    "type":"mod"
+  },
+  {
+    "slug": "sodium",
+    "loader": "fabric",
+    "type":"mod"
+  },
+  {
+    "slug": "sound-physics-remastered",
+    "loader": "fabric",
+    "type":"mod"
+  },
+  {
+    "slug": "simple-voice-chat",
+    "loader": "fabric",
+    "type":"mod"
+  },
+  {
+    "slug": "unique-dark",
+    "loader": "fabric",
+    "type":"resource-pack"
+  },
+  {
+    "slug": "ambientsounds",
+    "loader": "fabric",
+    "type":"mod"
+  }
+]
