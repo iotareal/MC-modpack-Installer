@@ -64,10 +64,19 @@ def get_mod_folder():
 def modman(mc_folder):
     os.chdir(mc_folder)
     try:
-        os.mkdir(".\\modman")
+        os.mkdir(os.path.join(mc_folder, "modman"))
     except FileExistsError:
         return
         
+def saveToJson(mod,mods_folder=os.path.join(get_mod_folder(),"mods")):
+    while(True):
+        if os.path.exists(f"{mods_folder}\\{mod["files"][0]["filename"]}"):
+            with TinyDB(os.path.join(modman_folder,"mods.json")) as mods_json:
+                _mod=Query()
+                mods_json.upsert(mod, _mod.slug == mod['slug'])
+            break
+        else:
+            download_mod(mod,mods_folder)
 
 
 if __name__=="__main__":
@@ -106,17 +115,9 @@ if __name__=="__main__":
     # ......
     # steps of phase 1
     mod=select_mod("sodium","fabric","1.21.1")
-    download_mod(mod,mods_folder)
     mod["active"]=True
-    # saving the download history in json file
-    while(True):
-        if os.path.exists(f"{mods_folder}\\{mod["files"][0]["filename"]}"):
-            with TinyDB(os.path.join(modman_folder,"mods.json")) as mods_json:
-                mods_json.insert(mod)
-                mods_json.close()
-            break
-        else:
-            download_mod(mod,mods_folder)
+    # downloading mod and saving download history in json file
+    saveToJson(mod)
         
         
         
