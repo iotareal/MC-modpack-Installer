@@ -9,7 +9,6 @@ if __name__=="__main__":
     # PHASE: 1.1 COMPLETED
     
     # mod_to_search=str(input("Enter mod name: "))
-    # mods=search(mod_to_search)
     # for mod in mods:
     #     print("Mod name:",mod["title"],sep=" ")
     #     print("Author:",mod["author"],sep=" ")
@@ -25,13 +24,19 @@ if __name__=="__main__":
     # mod_loader=str(input("Enter loader(case-sensitive): "))
     # mod_version=str(input("Enter version(case-sensitive): "))
     
-    # PHASE 1.2
-    
-    # ...... PHASE 1 steps
+    # # PHASE 1.2 COMPLETED
+    # # ...... PHASE 1 steps
+    mods=api.search("sodium")
     mod=api.select_mod("sodium","fabric","1.21.1")
-    mod["active"]=True
-    # downloading mod and saving download history in json file
-    dir.save_to_json(mod)
+    # print(json.dumps(mod, indent=4))
+    print("Mod name:",mod["name"],sep=" ")
+    print("Downloads:",mod["downloads"],sep=" ")
+    print("Versions: ")
+    for version in mod["versions"]:
+        print(version+",",end=" ")
+    
+    # PHASE 1.3
+    
         
         
         

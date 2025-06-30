@@ -1,79 +1,54 @@
+from tinydb import TinyDB, Query
+from core.directory import dir_handler as dir
+from core.exceptions import ModPackExceptions as error
 import os
 import json
 
-MODPACK_FILE = os.path.join(os.getcwd(), "modpacks.json")
+MODPACK_FILE = os.path.join(dir.get_modman_folder(), "modpacks.json")
+db=TinyDB(MODPACK_FILE)
+ModPack=Query()
 
-# Utility to load the JSON file
-def load_modpacks():
-    if not os.path.exists(MODPACK_FILE):
-        return {"active": None, "modpacks": []}
-    with open(MODPACK_FILE, "r") as f:
-        return json.load(f)
-
-# Utility to save the JSON file
-def save_modpacks(data):
-    with open(MODPACK_FILE, "w") as f:
-        json.dump(data, f, indent=2)
-
-# Create a new modpack
+# Initializes modpack.json file
+def init_modpacks_json():
+    os.chdir(dir.get_modman_folder())
+    try:
+        with open("modpacks.json",'x') as file:
+            pass
+    except FileExistsError:
+        os.chdir(MODPACK_FILE)
+        
 def create_modpack(name):
-    data = load_modpacks()
-    if any(mp["name"] == name for mp in data["modpacks"]):
-        print(f"Modpack '{name}' already exists.")
-        return
-    data["modpacks"].append({"name": name, "mods": []})
-    save_modpacks(data)
-    print(f"Modpack '{name}' created.")
+    init_modpacks_json()
+    if db.search(ModPack.name == name):
+        raise error.ModPackExistsError(name)
+    db.insert({"name":name, "mods":[], "active":False})
 
-# Add a mod to a modpack
-def add_mod_to_pack(pack_name, mod_data):
-    data = load_modpacks()
-    for mp in data["modpacks"]:
-        if mp["name"] == pack_name:
-            # Prevent duplicates by slug + version
-            if not any(m["slug"] == mod_data["slug"] and m["version"] == mod_data["version"] for m in mp["mods"]):
-                mod_data["downloaded"] = False  # Track download state
-                mp["mods"].append(mod_data)
-                save_modpacks(data)
-                print(f"Added '{mod_data['slug']}' to modpack '{pack_name}'")
-            else:
-                print("Mod already exists in the pack.")
-            return
-    print(f"Modpack '{pack_name}' not found.")
+def set_active(name):
+    if not db.search(ModPack.name == name):
+        raise error.ModPackNotExistsError(name)
+    packs=db.all()
+    for pack in packs:
+        db.update({"active":False}, ModPack.name==pack["name"])
+    db.update({"active":False}, ModPack.name==name)
+    
+def add_mod(pack_name,mod):
+    pack=db.get(ModPack.name==pack_name)
+    if not pack:
+        raise error.ModPackNotExistsError(pack_name)
+    
+    if any(m["slug"] == mod["slug"] and m["version"] == mod["version"] for m in pack["mods"]):
+        raise error.ModExistsError(mod["title"],pack_name)
 
-# Activate a modpack
-def set_active_modpack(name):
-    data = load_modpacks()
-    if not any(mp["name"] == name for mp in data["modpacks"]):
-        print(f"Modpack '{name}' does not exist.")
-        return
-    data["active"] = name
-    save_modpacks(data)
-    print(f"'{name}' is now the active modpack.")
+    pack["mods"].append(mod)
+    db.update({"mods": pack["mods"]}, ModPack.name == pack_name)
 
-# Prune mods (delete downloads, keep list)
-def prune_modpack(name):
-    data = load_modpacks()
-    for mp in data["modpacks"]:
-        if mp["name"] == name:
-            for mod in mp["mods"]:
-                mod["downloaded"] = False
-            save_modpacks(data)
-            print(f"Pruned downloaded mods from '{name}'.")
-            return
-    print(f"Modpack '{name}' not found.")
-
-# Delete a modpack
-def delete_modpack(name):
-    data = load_modpacks()
-    data["modpacks"] = [mp for mp in data["modpacks"] if mp["name"] != name]
-    if data["active"] == name:
-        data["active"] = None
-    save_modpacks(data)
-    print(f"Deleted modpack '{name}'.")
-
-# List modpacks
-def list_modpacks():
-    data = load_modpacks()
-    for mp in data["modpacks"]:
-        print(f"📦 {mp['name']} ({len(mp['mods'])} mods){' [ACTIVE]' if mp['name'] == data['active'] else ''}")
+def remove_mod(pack_name,mod):
+    pack=db.get(ModPack.name==pack_name)
+    if not pack:
+        raise error.ModPackNotExistsError(pack_name)
+    
+    if any(m["slug"] == mod["slug"] and m["version"] == mod["version"] for m in pack["mods"]):
+        raise error.ModExistsError(mod["title"],pack_name)
+    for _mod in pack["mods"]:
+        if _mod["name"] == mod[]
+    
