@@ -5,50 +5,93 @@ import os
 import json
 
 MODPACK_FILE = os.path.join(dir.get_modman_folder(), "modpacks.json")
-db=TinyDB(MODPACK_FILE)
+if not os.path.exists(MODPACK_FILE):
+    with open("modpacks.json",'x') as file:
+            pass
+    os.chdir(dir.get_modman_folder())
+else:
+    os.chdir(dir.get_modman_folder())
 ModPack=Query()
 
-# Initializes modpack.json file
-def init_modpacks_json():
-    os.chdir(dir.get_modman_folder())
-    try:
-        with open("modpacks.json",'x') as file:
-            pass
-    except FileExistsError:
-        os.chdir(MODPACK_FILE)
-        
-def create_modpack(name):
-    init_modpacks_json()
-    if db.search(ModPack.name == name):
-        raise error.ModPackExistsError(name)
-    db.insert({"name":name, "mods":[], "active":False})
 
-def set_active(name):
-    if not db.search(ModPack.name == name):
-        raise error.ModPackNotExistsError(name)
-    packs=db.all()
-    for pack in packs:
-        db.update({"active":False}, ModPack.name==pack["name"])
-    db.update({"active":False}, ModPack.name==name)
+def prettify_modpack_file():
+    with open(MODPACK_FILE, 'r') as f:
+        data = json.load(f)
+    with open(MODPACK_FILE, 'w') as f:
+        json.dump(data, f, indent=2)
+        
+def get_db():
+    return TinyDB(MODPACK_FILE)
+
+def create_modpack(name,loader,version,set_active=False):
+    with get_db() as db:
+        if db.search(ModPack.name == name):
+            raise error.ModPackExistsError(name)
+        else:
+            db.insert({"name":name,"for_version":version,"for_loader":loader, "active":set_active, "mods":[]})
+    prettify_modpack_file()
+            
+def set_active(pack_name):
+    with get_db() as db:
+        if db.get(ModPack.name == pack_name) is None:
+            raise error.ModPackNotExistsError(pack_name)
+        packs=db.all()
+        for pack in packs:
+            db.update({"active":False}, ModPack.name==pack["name"])
+        db.update({"active":True}, ModPack.name==pack_name)
+    prettify_modpack_file()
     
 def add_mod(pack_name,mod):
-    pack=db.get(ModPack.name==pack_name)
-    if not pack:
-        raise error.ModPackNotExistsError(pack_name)
+    set_active(pack_name)
+    with get_db() as db:
+        pack=db.get(ModPack.name==pack_name)
+        if not pack:
+            raise error.ModPackNotExistsError(pack_name)
+        
+        if any(_mod['id'] == mod['id'] for _mod in pack["mods"]):
+            raise error.ModExistsError(mod["name"],pack_name)
+
+        pack["mods"].append(mod)
+        db.update({"mods": pack["mods"]}, ModPack.name == pack_name)
+    prettify_modpack_file()
+
+def delete_modpack(pack_name):
+    with get_db() as db:
+        pack=db.get(ModPack.name==pack_name)
+        if not pack:
+            raise error.ModPackNotExistsError(pack_name)
+        
+        db.remove(ModPack.name == pack_name)
+    prettify_modpack_file()
     
-    if any(m["slug"] == mod["slug"] and m["version"] == mod["version"] for m in pack["mods"]):
-        raise error.ModExistsError(mod["title"],pack_name)
-
-    pack["mods"].append(mod)
-    db.update({"mods": pack["mods"]}, ModPack.name == pack_name)
-
 def remove_mod(pack_name,mod):
-    pack=db.get(ModPack.name==pack_name)
-    if not pack:
-        raise error.ModPackNotExistsError(pack_name)
+    with get_db() as db:
+        pack=db.get(ModPack.name==pack_name)
+        if not pack:
+            raise error.ModPackNotExistsError(pack_name)
+        
+        if not any(_mod['id'] == mod['id'] for _mod in pack["mods"]):
+            raise error.ModNotExistsError(mod["name"], pack_name)
+        
+        updated_pack = [_mod for _mod in pack["mods"] if _mod['id'] != mod['id']]
+        db.update({"mods": updated_pack}, ModPack.name == pack_name)
+    prettify_modpack_file()
+def get_active_modpack():
+    with get_db() as db:
+        return db.get(ModPack.active == True)
     
-    if any(m["slug"] == mod["slug"] and m["version"] == mod["version"] for m in pack["mods"]):
-        raise error.ModExistsError(mod["title"],pack_name)
-    for _mod in pack["mods"]:
-        if _mod["name"] == mod[]
+def list_of_all_modpacks():
+    with get_db() as db:
+        return db.all()
     
+def rename_packname(new,old):
+    with get_db() as db:
+        pack=db.get(ModPack.name==old)
+        if not pack:
+            raise error.ModPackNotExistsError(old)
+        db.update({'name':new},ModPack.name==old)
+        print(f"Successfully Updated Name: {old} to {new}")
+    prettify_modpack_file()
+        
+        
+            

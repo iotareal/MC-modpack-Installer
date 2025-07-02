@@ -1,9 +1,10 @@
 import requests
+import pickle
 import os
 
-def search(query):
+def search(name):
     # searching and getting list of mods
-    url = f"https://api.modrinth.com/v2/search?query={query}"
+    url = f"https://api.modrinth.com/v2/search?query={name}"
     response = requests.get(url)
     data = response.json()
 
@@ -52,3 +53,20 @@ def get_mods_bulk(slug_list):
         print("Error:", response.status_code)
         print("Response:", response.text)
         return
+    
+def update_supported_lists(save_path="core/api/supported.pkl"):
+    try:
+        game_versions = requests.get("https://api.modrinth.com/v2/tag/game_version").json()
+        loaders = requests.get("https://api.modrinth.com/v2/tag/loader").json()
+
+        supported = {
+            "versions": sorted([v["version"] for v in game_versions]),
+            "loaders": sorted([l["name"] for l in loaders])
+        }
+
+        with open(save_path, "wb") as f:
+            pickle.dump(supported, f)
+
+        print("✅ Binary-supported list saved successfully!")
+    except Exception as e:
+        print("❌ Failed to update supported list:", e)
