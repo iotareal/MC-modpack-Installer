@@ -13,4 +13,5 @@ class ModExistsError(Exception):
 class ModNotExistsError(Exception):
     def __init__(self, mod_name,pack_name):
         super().__init__(f"Mod '{mod_name}' do not exist in {pack_name}.")
-        
+    def __init__(self, mod_name,path):
+        super().__init__(f"Mod '{mod_name}' do not exist at {path}.")
