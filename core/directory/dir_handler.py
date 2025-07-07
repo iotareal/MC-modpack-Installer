@@ -1,9 +1,33 @@
+#only creates, and gets directory or file
+# and handles ini (paths)
 from core.api import api_handler
 from tkinter import Tk, filedialog
 from tinydb import TinyDB, Query
 from core.exceptions import ModPackExceptions as error
+import configparser
 import os
 import platform
+# {{{
+    
+CONFIG_PATH = "config.ini"
+SECTION = "paths"
+
+config = configparser.ConfigParser()
+config.read(CONFIG_PATH)
+
+if not config.has_section(SECTION):
+    config.add_section(SECTION)
+    
+#}}}
+
+def set_path(key, value):
+    config.set(SECTION, key, value)
+    with open(CONFIG_PATH, "w") as f:
+        config.write(f)
+
+def get_path(key):
+    return config.get(SECTION, key, fallback=None)
+
 
 def get_mc_folder():
     path = os.path.expanduser("~")
