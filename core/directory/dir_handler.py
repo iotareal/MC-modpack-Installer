@@ -1,35 +1,49 @@
 #only creates, and gets directory or file
 # and handles ini (paths)
-from core.api import api_handler
 from tkinter import Tk, filedialog
 from tinydb import TinyDB, Query
-from core.exceptions import ModPackExceptions as error
 import configparser
 import os
 import platform
 # {{{
     
-CONFIG_PATH = "config.ini"
+CONFIG_INI = "config.ini"
 SECTION = "paths"
-
-config = configparser.ConfigParser()
-config.read(CONFIG_PATH)
-
-if not config.has_section(SECTION):
-    config.add_section(SECTION)
     
 #}}}
 
-def set_path(key, value):
+def safe_get(config_path,section=SECTION):
+    config = configparser.ConfigParser()
+
+    if not os.path.exists(config_path):
+        with open(config_path, 'w') as f:
+            f.write("")
+            
+    if not config.has_section(section):
+        config.add_section(section)
+    
+    config.read(CONFIG_INI)
+    return config
+
+def set_value(key, value):
+    config=safe_get(CONFIG_INI)
     config.set(SECTION, key, value)
-    with open(CONFIG_PATH, "w") as f:
+    with open(CONFIG_INI, "w") as f:
         config.write(f)
+    print(f"config: in '{SECTION}' written {key} = {value}")
 
 def get_path(key):
-    return config.get(SECTION, key, fallback=None)
+    config=safe_get(CONFIG_INI)
+    if config.has_section(SECTION):
+        return config.get(SECTION, key, fallback=None)
+    else:
+        return False 
 
-
-def get_mc_folder():
+def get_mc_dir():
+    path=get_path("MC_DIR")
+    if path and os.path.exists(path):
+        return path
+    
     path = os.path.expanduser("~")
     if platform.system() == "Windows":
         path = os.path.join(path, "AppData", "Roaming", ".minecraft")
@@ -39,75 +53,110 @@ def get_mc_folder():
         path = os.path.join(path, ".minecraft")
     
     if os.path.exists(path):
+        set_value("MC_DIR",path)
         return path
+    
     else:
         Root = Tk()
         Root.withdraw()
         selectedFolder = filedialog.askdirectory(title="Select your Minecraft folder")
         Root.destroy()
-        return selectedFolder if selectedFolder else get_mc_folder()
+        if selectedFolder:
+            set_value("MC_DIR",selectedFolder)
+            return selectedFolder  
+        else: 
+            get_mc_dir()
     
-def default_dir():
-    os.chdir(get_mc_folder())                   
-    return
-
-def get_modman_folder():
-    path=get_mc_folder()
-    try:
-        modman_folder=os.path.join(path, "modman")
-        os.mkdir(modman_folder)
-        return modman_folder
+def get_modman_dir():
+    path=get_path("MODMAN_DIR")
+    if path and os.path.exists(os.path.join(get_mc_dir(),"modman")):
+        return path
     
-    except FileExistsError:
-        return modman_folder
-
-def get_mods_folder():
-    path=get_mc_folder()
-    try:
-        mods_folder=os.path.join(path, "mods")
-        os.mkdir(mods_folder)
-        return mods_folder
-    
-    except FileExistsError:
-        return mods_folder
-
-def change_to_modman_dir():
-    os.chdir(get_modman_folder())
-    return
-
-def change_to_mods_dir():
-    os.chdir(get_mods_folder())      
-    return
-
-def create_modpacks_json():
-    curr_path=os.getcwd()
-    change_to_modman_dir()
-    try:
-        with open("modpacks.json",'x') as file:
-            pass
-        os.chdir(curr_path)
-        return
-    except FileExistsError:
-        os.chdir(curr_path)
-        return
-
-def create_mods_json():
-    curr_path=os.getcwd()
-    change_to_modman_dir()
-    try:
-        with open("mods.json",'x') as file:
-            pass
-        
-        os.chdir(curr_path)
-        return
-    except FileExistsError:
-        os.chdir(curr_path)
-        return
-
-def get_buffer_folder():
-    path=os.path.join(get_modman_folder(),"buffer")
+    path=os.path.join(get_mc_dir(),"modman")
     if not os.path.exists(path):
-        os.mkdir(path)
+        os.makedirs(path)
+        
+    set_value("MODMAN_DIR",path)
+    return path 
+
+def get_mods_dir():
+    path=get_path("MODS_DIR")
+    if path and os.path.exists(os.path.join(get_mc_dir(),"mods")):
+        return path
+    
+    path=os.path.join(get_mc_dir(),"mods")
+    if not os.path.exists(path):
+        os.makedirs(path)
+        print(f"dir: 'mods' made at {get_mc_dir()}")
+        
+    set_value("MODS_DIR",path)
     return path
 
- 
+def get_rpacks_dir():
+    path=get_path("RPACKS_DIR")
+    if path and os.path.exists(os.path.join(get_mc_dir(),"resourcepacks")):
+        return path
+    
+    path=os.path.join(get_mc_dir(),"resourcepacks")
+    if not os.path.exists(path):
+        os.makedirs(path)
+        print(f"dir: 'resourcepacks' made at {get_mc_dir()}")
+        
+    set_value("RPACKS_DIR",path)
+    return path
+
+def get_shaderpacks_dir():
+    path=get_path("SHADERPCKS_DIR")
+    path=get_path("BUFFER_DIR")
+    if path and os.path.exists(os.path.join(get_mc_dir(),"shaderpacks")):
+        return path
+    
+    path=os.path.join(get_mc_dir(),"shaderpacks")
+    if not os.path.exists(path):
+        os.makedirs(path)
+        print(f"dir: 'shaderpacks' made at {get_mc_dir()}")
+        
+    set_value("SHADERPCKS_DIR",path)
+    return path
+
+def get_buffer_dir():
+    path=get_path("BUFFER_DIR")
+    if path and os.path.exists(os.path.join(get_modman_dir(),"buffer")):
+        return path
+    
+    path=os.path.join(get_modman_dir(),"buffer")
+    if not os.path.exists(path):
+        os.makedirs(path)
+        print(f"dir: 'buffer' made at {get_modman_dir()}")
+        
+    set_value("BUFFER_DIR",path)
+    return path
+
+def get_modpacks_json():
+    path=get_path("MODPACKS_JSON")
+    if path and os.path.exists(path):
+        return path
+    
+    path=os.path.join(get_modman_dir(),"modpacks.json")
+    if not os.path.exists(path):
+        with open(path,'x') as file:
+            pass
+        print(f"dir: file 'modpacks.json' created at {get_modman_dir()}")
+        
+    set_value("MODPACKS_JSON",path)
+    return path
+
+def get_mods_json():
+    path=get_path("MODS_JSON")
+    if path and os.path.exists(path):
+        return path
+    
+    path=os.path.join(get_modman_dir(),"mods.json")
+    if not os.path.exists(path):
+        with open(path,'x') as file:
+            pass
+        print(f"dir: file 'mods.json' created at {get_modman_dir()}")
+        
+    set_value("MODS_JSON",path)
+    return path
+

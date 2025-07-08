@@ -1,5 +1,9 @@
+# Handles api requests to show in frontend
+import sys, os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+
+
 import requests
-import pickle
 import os
 
 def search(name):
@@ -54,19 +58,3 @@ def get_mods_bulk(slug_list):
         print("Response:", response.text)
         return
     
-def update_supported_lists(save_path="core/api/supported.pkl"):
-    try:
-        game_versions = requests.get("https://api.modrinth.com/v2/tag/game_version").json()
-        loaders = requests.get("https://api.modrinth.com/v2/tag/loader").json()
-
-        supported = {
-            "versions": sorted([v["version"] for v in game_versions]),
-            "loaders": sorted([l["name"] for l in loaders])
-        }
-
-        with open(save_path, "wb") as f:
-            pickle.dump(supported, f)
-
-        print("✅ Binary-supported list saved successfully!")
-    except Exception as e:
-        print("❌ Failed to update supported list:", e)
