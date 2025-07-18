@@ -2,13 +2,22 @@
 import sys, os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
-
+from core.modpack import modpack_handler as mdpck
+from core.directory import dir_handler as dir
+from core.classes.enums import facets
+from core.classes.Filters import Filters
 import requests
 import os
-
+FILTER = Filters()
+def set_perma_filter():
+    modpack = mdpck.get_active()
+    FILTER.add_filter("categories", modpack['loader'])
+    FILTER.add_filter("versions",modpack['version'])
+    
 def search(name):
     # searching and getting list of mods
-    url = f"https://api.modrinth.com/v2/search?query={name}"
+    set_perma_filter()
+    url = f"https://api.modrinth.com/v2/search?q={name}&f={FILTER}"
     response = requests.get(url)
     data = response.json()
 
@@ -22,14 +31,14 @@ def select_mod(slug,loader,version):
     data = response.json()
     
     # details of selected mod by loader and version
-    mod=[items for items in data if (loader in items["loaders"] and version in items["game_versions"] and items["version_type"]=="release")]
+    mod=[items for items in data if (version in items["game_versions"] and items["version_type"]=="release")]
     return mod[0]
 
-def download_mod(mod,folder):
+def download_mod(mod):
     # got download link
-    dl=mod["files"][0]["url"]
-    filename=mod["files"][0]["filename"]
-    save_path = os.path.join(folder, filename)
+    dl = mod["files"][0]["url"]
+    filename = mod["files"][0]["filename"]
+    save_path = os.path.join(dir.get_buffer_dir(), filename)
 
     # Downloading the file
     response = requests.get(dl, stream=True)
@@ -42,19 +51,6 @@ def download_mod(mod,folder):
             print("Failed. Status:", response.status_code)
             print("Content-Type:", response.headers.get("Content-Type"))
             print("Message:", response.text[:200])
-            
-def get_mods_bulk(slug_list):
-    url = "https://api.modrinth.com/v2/projects"
-    headers = {
-        "Content-Type": "application/json"
-    }
-    response = requests.post(url, json=slug_list, headers=headers)
-    if response.status_code == 200:
-        data = response.json()
-        mods=[items for items in data.get("hits",[])]
-        return mods
-    else:
-        print("Error:", response.status_code)
-        print("Response:", response.text)
-        return
+
+
     
