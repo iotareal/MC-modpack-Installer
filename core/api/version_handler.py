@@ -1,3 +1,7 @@
+import sys, os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+
+import random
 import requests
 import pickle
 import time
@@ -6,7 +10,7 @@ import re
 
 def update_supported_lists(save_path="versions.pkl",max_age_seconds=28800,force=False):
     try:
-        if os.path.exists(save_path) and not force:
+        if os.path.exists(save_path) or not force:
             last_modified = os.path.getmtime(save_path)
             if time.time() - last_modified < max_age_seconds:
                 return
@@ -57,69 +61,67 @@ def update_supported_lists(save_path="versions.pkl",max_age_seconds=28800,force=
     except Exception as e:
         print("\nconfig: 'versions.pkl' failed to update",e)
 
+update_supported_lists()
 # version getters
 def get_all_versions():
-    update_supported_lists()
     with open("versions.pkl",'rb') as file:
         supported=pickle.load(file)
     return supported["all_versions"]
     
 def get_release_versions():
-    update_supported_lists()
     with open("versions.pkl",'rb') as file:
         supported=pickle.load(file)
     return supported['release_versions']
 
 def get_snapshots():
-    update_supported_lists()
     with open("versions.pkl",'rb') as file:
         supported=pickle.load(file)
     return supported['snapshots']
 
 def get_betas():
-    update_supported_lists()
     with open("versions.pkl",'rb') as file:
         supported=pickle.load(file)
     return supported['betas']
 
 def get_alphas():
-    update_supported_lists()
     with open("versions.pkl",'rb') as file:
         supported=pickle.load(file)
     return supported['alphas']
 
 def get_rcs():
-    update_supported_lists()
     with open("versions.pkl",'rb') as file:
         supported=pickle.load(file)
     return supported['rcs']
 
 def get_pre_releases():
-    update_supported_lists()
     with open("versions.pkl",'rb') as file:
         supported=pickle.load(file)
     return supported['pre_releases']
 
 def get_others():
-    update_supported_lists()
     with open("versions.pkl",'rb') as file:
         supported=pickle.load(file)
     return supported['others']
 
 def get_loaders():
-    update_supported_lists()
     with open("versions.pkl",'rb') as file:
         supported=pickle.load(file)
     return supported['loaders']
 
 def get_latest_release():
-    update_supported_lists()
+    update_supported_lists(force=True)
     with open("versions.pkl",'rb') as file:
         supported=pickle.load(file)
     return supported['release_versions'][0]
 
 def get_latest_snapshot():
-    update_supported_lists()
+    update_supported_lists(force=True)
     with open("versions.pkl",'rb') as file:
         supported=pickle.load(file)
     return supported['snapshots'][0]
+
+def get_random_loader():
+    with open("versions.pkl",'rb') as file:
+        supported=pickle.load(file)
+    idx = random.randint(0,len(supported["loaders"])-1)
+    return supported["loaders"][idx]

@@ -52,5 +52,54 @@ def download_mod(mod):
             print("Content-Type:", response.headers.get("Content-Type"))
             print("Message:", response.text[:200])
 
+def get_manipulated_response(slug: str, mc_version: str) -> dict | None:
+     # Endpoint to get a list of all versions for a project
+    url = f"https://api.modrinth.com/v2/project/{slug}/version"
+    
+    # Parameters to filter the versions returned by the API
+    params = {
+        'game_versions': f'["{mc_version}"]'
+    }
+    
+    try:
+        response = requests.get(url, params=params)
+        response.raise_for_status()
+        
+        versions_list = response.json()
+        
+        # If the list is empty, no compatible version was found
+        if not versions_list:
+            print(f"Info: No version of '{slug}' found for Minecraft {mc_version}.")
+            return None
+            
+        # The API returns versions sorted by creation date, so the first
+        # item is the newest compatible version.
+        latest_version_data = versions_list[0]
+        
+        # --- Manipulation Logic ---
+        project_type = latest_version_data.get('project_type')
+        loaders = latest_version_data.get('loaders', [])
+        
+        classification = "unknown"
+        if project_type == 'mod':
+            if 'datapack' in loaders:
+                classification = "datapack"
+            else:
+                classification = "mod"
+        elif project_type == 'resourcepack':
+            classification = "resourcepack"
+        elif project_type == 'shader':
+            classification = "shader"
+            
+        # Add the new 'type' key to the dictionary
+        latest_version_data['type'] = classification
+        
+        return latest_version_data
 
+    except requests.exceptions.HTTPError as err:
+        print(f"Error fetching '{slug}': Not Found or API error (Status: {err.response.status_code})")
+        return None
+    except requests.exceptions.RequestException as e:
+        print(f"Error: A network problem occurred: {e}")
+        return None
     
