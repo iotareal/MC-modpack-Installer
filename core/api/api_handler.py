@@ -3,7 +3,7 @@ import sys, os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
 from core.modpack import modpack_handler as mdpck
-from core.directory import dir_handler as dir
+from core.directory import Paths as dir
 from core.classes.enums import facets
 from core.classes.Filters import Filters
 import requests

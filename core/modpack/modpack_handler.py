@@ -2,7 +2,7 @@
 import sys, os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
-from core.directory import dir_handler as dir
+from core.directory import Paths as dir
 from core.exceptions import ModPackExceptions as err
 from core.exceptions import VersionExceptions as verr
 from core.modpack import mod_handler as md
