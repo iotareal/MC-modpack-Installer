@@ -30,7 +30,6 @@ def set_value(key, value):
     config.set(SECTION, key, value)
     with open(CONFIG_INI, "w") as f:
         config.write(f)
-    print(f"config: in '{SECTION}' written {key} = {value}")
 
 def get_path(key):
     config=safe_get(CONFIG_INI)
@@ -87,7 +86,6 @@ def get_mods_dir():
     path=os.path.join(get_mc_dir(),"mods")
     if not os.path.exists(path):
         os.makedirs(path)
-        print(f"dir: 'mods' made at {get_mc_dir()}")
         
     set_value("MODS_DIR",path)
     return path
@@ -100,7 +98,6 @@ def get_rpacks_dir():
     path=os.path.join(get_mc_dir(),"resourcepacks")
     if not os.path.exists(path):
         os.makedirs(path)
-        print(f"dir: 'resourcepacks' made at {get_mc_dir()}")
         
     set_value("RPACKS_DIR",path)
     return path
@@ -114,7 +111,6 @@ def get_shaderpacks_dir():
     path=os.path.join(get_mc_dir(),"shaderpacks")
     if not os.path.exists(path):
         os.makedirs(path)
-        print(f"dir: 'shaderpacks' made at {get_mc_dir()}")
         
     set_value("SHADERPCKS_DIR",path)
     return path
@@ -127,36 +123,33 @@ def get_buffer_dir():
     path=os.path.join(get_modman_dir(),"buffer")
     if not os.path.exists(path):
         os.makedirs(path)
-        print(f"dir: 'buffer' made at {get_modman_dir()}")
         
     set_value("BUFFER_DIR",path)
     return path
 
-def get_modpacks_json():
-    path=get_path("MODPACKS_JSON")
+def get_db():
+    path=get_path("DB")
     if path and os.path.exists(path):
         return path
     
-    path=os.path.join(get_modman_dir(),"modpacks.json")
+    path=os.path.join(get_modman_dir(),"db.json")
     if not os.path.exists(path):
         with open(path,'x') as file:
             pass
-        print(f"dir: file 'modpacks.json' created at {get_modman_dir()}")
-        
-    set_value("MODPACKS_JSON",path)
+    set_value("DB",path)
     return path
-
-def get_mods_json():
-    path=get_path("MODS_JSON")
-    if path and os.path.exists(path):
-        return path
+# DEPRECATED
+# def get_mods_json():
+#     path=get_path("MODS_JSON")
+#     if path and os.path.exists(path):
+#         return path
     
-    path=os.path.join(get_modman_dir(),"mods.json")
-    if not os.path.exists(path):
-        with open(path,'x') as file:
-            pass
-        print(f"dir: file 'mods.json' created at {get_modman_dir()}")
+#     path=os.path.join(get_modman_dir(),"mods.json")
+#     if not os.path.exists(path):
+#         with open(path,'x') as file:
+#             pass
+#         print(f"dir: file 'mods.json' created at {get_modman_dir()}")
         
-    set_value("MODS_JSON",path)
-    return path
+#     set_value("MODS_JSON",path)
+#     return path
 
