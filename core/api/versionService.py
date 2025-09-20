@@ -1,14 +1,15 @@
 import sys, os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
-from core.exceptions import VersionExceptions as err
+import re
 import random
-import requests
 import pickle
 import time
-import json
+import requests
 import os
-import re
-VERSION_FILE = "versions.pkl"
+import core.exceptions as err
+
+VERSION_FILE = "./versions.pkl"
+
 def update_supported_lists(save_path=VERSION_FILE,max_age_seconds=28800,force=False):
     try:
         if not os.path.exists(save_path):
@@ -64,8 +65,7 @@ def update_supported_lists(save_path=VERSION_FILE,max_age_seconds=28800,force=Fa
         print("\n[api] 'versions.pkl' updated")
     except Exception as e:
         print("\n[api] 'versions.pkl' failed to update",e)
-
-update_supported_lists()
+        
 # version getters
 def get_all_versions():
     with open(VERSION_FILE,'rb') as file:
@@ -139,101 +139,3 @@ def validate_loader(loader:str) -> None:
     loaders = get_loaders()
     if loader.casefold() not in loaders:
         raise err.LoaderNotFoundError(loader)
-
-# GETTERS
-# search by selected pack
-def search_mods(query:str,selected_pack) -> list[dict]:
-    url = "https://api.modrinth.com/v2/search"
-    
-    facets = [[f"versions:{selected_pack["minecraft_version"]}"],
-              [f"categories : {selected_pack["loader"]}"]
-            ]
-    
-    params = {
-        "query" : query,
-        "facets" : json.dumps(facets)
-    }
-    try:
-        response = requests.get(url,params=params)
-        response.raise_for_status()
-        return response.json()["hits"]
-    except requests.exceptions.RequestException as e:
-        print(f"[api] an error occured: {e}")
-        return []
-
-# seach by query and version NO USAGE
-def search_mods(query:str,version,loader) -> list[dict]:
-    url = "https://api.modrinth.com/v2/search"
-    
-    facets = [[f"versions:{version}"],
-              [f"categories : {loader}"]
-            ]
-    
-    params = {
-        "query" : query,
-        "facets" : json.dumps(facets)
-    }
-    try:
-        response = requests.get(url,params=params)
-        response.raise_for_status()
-        return response.json()["hits"]
-    except requests.exceptions.RequestException as e:
-        print(f"[api] an error occured: {e}")
-        return []
-    
-def get_mod(id:str,selected_pack):
-    url = f"https://api.modrinth.com/v2/project/{id}"
-    params = {
-        "game_versions" : json.dumps([selected_pack["minecraft_version"]]),
-        "loaders" : json.dumps([selected_pack["loader"]])
-    }
-    try:
-        response = requests.get(url,params=params)
-        response.raise_for_status()
-        response = response.json()
-        response['versions'].clear()
-        return response
-    except Exception as e:
-        print(e)
-        return []
-
-def get_mod_version(id:str,selected_pack):
-    url = f"https://api.modrinth.com/v2/project/{id}/version"
-    params = {
-        "game_versions" : json.dumps([selected_pack["minecraft_version"]]),
-        "loaders" : json.dumps([selected_pack["loader"]])
-    }
-    try:
-        response = requests.get(url,params=params)
-        response.raise_for_status()
-        return response.json()
-    except Exception as e:
-        print(e)
-        return []
-    
-def get_bulk_mods(project_ids:list[str]) -> list[dict]:
-    url = "https://api.modrinth.com/v2/projects"
-    params = {
-        'ids': json.dumps(project_ids)
-    }
-    try:
-        response = requests.get(url,params=params)
-        response.raise_for_status()
-        return response.json()
-    except requests.exceptions.RequestException as e:
-        print(f"[api] an error occured: {e}")
-        return []
-
-def get_latest_mod_version(id:str,version:str,loader:str) -> dict:
-    url = f"https://api.modrinth.com/v2/project/{id}/version"
-    params = {
-        "game_versions" : json.dumps([version]),
-        "loaders" : json.dumps([loader])
-    }
-    try:
-        response = requests.get(url,params=params)
-        response.raise_for_status()
-        return response.json()[0]
-    except Exception as e:
-        print(e)
-        return []
